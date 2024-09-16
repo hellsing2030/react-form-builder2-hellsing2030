@@ -1,66 +1,74 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
-  entry: './app.js',
-  devtool: 'source-map',
+  entry: "./app.js",
+  devtool: "source-map", // Mantén esta opción para generar source maps
   output: {
-    path: path.resolve('./public'),
-    filename: 'app.js'
+    path: path.resolve(__dirname, "./public"),
+    filename: "app.js",
+    library: "MyLibrary",
+    libraryTarget: "umd",
+    umdNamedDefine: true,
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.scss', '.css', '.json'],
+    extensions: [".js", ".jsx", ".scss", ".css", ".json"],
     alias: {
-      "jquery": path.join(__dirname, "./jquery-stub.js")
-    }
+      jquery: path.resolve(__dirname, "./jquery-stub.js"),
+    },
   },
   plugins: [
-    //
+    // Agrega tus plugins aquí si es necesario
   ],
-  
   module: {
     rules: [
       {
         exclude: /node_modules/,
-        test: /\.js$|.jsx?$/,
+        test: /\.(js|jsx)$/,
         use: [
-          { loader: 'babel-loader' }
+          {
+            loader: "babel-loader",
+          },
         ],
       },
       {
         test: /\.scss$/,
         use: [
           {
-            loader: 'style-loader'
+            loader: "style-loader", // Inyecta estilos en el DOM
           },
           {
-            loader: 'css-loader'
+            loader: "css-loader", // Carga archivos CSS
+            options: {
+              sourceMap: true, // Activa los source maps para CSS
+            },
           },
           {
-            loader: 'sass-loader', options: {
+            loader: "sass-loader", // Compila SCSS a CSS
+            options: {
+              sourceMap: true, // Activa los source maps para SCSS
               sassOptions: {
-                includePaths: ['./node_modules'],
+                includePaths: ["./node_modules"], // Rutas para incluir en SCSS
               },
-            }
-          }
-        ]
+            },
+          },
+        ],
       },
-    ]
+      {
+        test: /\.css$/,
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: true, // Activa los source maps para CSS
+            },
+          },
+          "postcss-loader",
+        ],
+        enforce: "pre",
+        include: /node_modules/,
+      },
+    ],
   },
-  devServer: {
-    port: 8080,
-    host: "localhost",
-    historyApiFallback: true,
-    headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
-    },
-    watchOptions: {aggregateTimeout: 300, poll: 1000},
-    contentBase: './public',
-    open: true,
-    proxy: {
-      "/api/*": "http://127.0.0.1:5005"
-    }
-  }
 };

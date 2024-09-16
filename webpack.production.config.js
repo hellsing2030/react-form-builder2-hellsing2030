@@ -1,75 +1,72 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
-  entry: './src/index.jsx',
-
+  entry: "./src/index.jsx",
   output: {
-    path: path.resolve('./dist'),
-    filename: 'app.js',
-    library: 'ReactFormBuilder',
-    libraryTarget: 'umd',
+    path: path.resolve(__dirname, "./dist"),
+    filename: "app.js",
+    library: "ReactFormBuilder",
+    libraryTarget: "umd",
     umdNamedDefine: true,
+    publicPath: "/",
   },
-
-  externals: {
-    //don't bundle the 'react' npm package with our bundle.js
-    //but get it from a global 'React' variable
-    'react': {
-      'commonjs': 'react',
-      'commonjs2': 'react',
-      'amd': 'react',
-      'root': 'React'
-    },
-    'react-dom': {
-      'commonjs': 'react-dom',
-      'commonjs2': 'react-dom',
-      'amd': 'react-dom',
-      'root': 'ReactDOM'
-    },
-    // 'react-datepicker': 'react-datepicker',
-    // 'classnames': 'classnames',
-    // 'jquery': 'jquery',
-    'bootstrap': 'bootstrap'
-  },
-
   resolve: {
-    extensions: ['./mjs', '.js', '.jsx', '.scss', '.css', '.json'],
-    alias: {
-      "jquery": path.join(__dirname, "./jquery-stub.js")
-    }
+    extensions: [".js", ".jsx", ".scss", ".css", ".json"],
   },
-
   module: {
     rules: [
+      // Load JavaScript and JSX files with Babel
       {
+        test: /\.(js|jsx)$/i,
         exclude: /node_modules/,
-        test: /\.js$|.jsx?$/,
-        use: [
-          { loader: 'babel-loader' }
-        ]
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-react"],
+            plugins: ["@babel/plugin-transform-runtime"],
+          },
+        },
       },
+      // Load SCSS files
       {
-        test: /\.scss$/,
+        test: /\.scss$/i,
         use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
           {
-            loader: 'style-loader'
-          },
-          {
-            loader: 'css-loader'
-          },
-          {
-            loader: 'sass-loader', options: {
+            loader: "sass-loader",
+            options: {
+              sourceMap: false, // Desactiva la generación de source maps para SCSS
               sassOptions: {
-                includePaths: ['./node_modules'],
+                includePaths: ["./node_modules"],
               },
-            }
-          }
-        ]
+            },
+          },
+        ],
       },
-    ]
+      // Load CSS files from node_modules
+      {
+        test: /\.css$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          "postcss-loader",
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: false,
+            },
+          },
+        ],
+        include: /node_modules/,
+      },
+    ],
   },
-  performance: {
-    hints: false
-  }
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: "styles.css",
+    }),
+  ],
+  devtool: false, // Desactiva los source maps en la configuración general
 };
